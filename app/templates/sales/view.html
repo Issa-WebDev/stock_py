@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}Vente #{{ sale.id }} - Gestion de Stock{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-receipt me-2"></i>Vente #{{ sale.id }}</h1>
+    <a href="{{ url_for('sales.list_sales') }}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left me-2"></i>Retour aux ventes
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Détails de la vente</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Date de vente :</strong>
+                        <p>{{ sale.sale_date.strftime('%d/%m/%Y à %H:%M') }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Vendeur :</strong>
+                        <p>{{ sale.user.username }}</p>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Produit :</strong>
+                        <p>
+                            <a href="{{ url_for('products.view_product', id=sale.product.id) }}" class="text-decoration-none">
+                                {{ sale.product.name }}
+                            </a><br>
+                            <small class="text-muted">Référence: {{ sale.product.reference }}</small>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Catégorie :</strong>
+                        <p><span class="badge bg-secondary">{{ sale.product.category }}</span></p>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <strong>Quantité vendue :</strong>
+                        <p class="h5 text-primary">{{ sale.quantity_sold }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Prix unitaire :</strong>
+                        <p class="h5 text-info">{{ "%.2f"|format(sale.unit_price) }}€</p>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Total :</strong>
+                        <p class="h4 text-success">{{ "%.2f"|format(sale.total_price) }}€</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Résumé</h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="bi bi-cart-check display-4 text-success"></i>
+                </div>
+                <h3 class="text-success">{{ "%.2f"|format(sale.total_price) }}€</h3>
+                <p class="text-muted">Montant de la vente</p>
+                
+                <hr>
+                
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h5>{{ sale.quantity_sold }}</h5>
+                        <small class="text-muted">Unités</small>
+                    </div>
+                    <div class="col-6">
+                        <h5>{{ "%.2f"|format(sale.unit_price) }}€</h5>
+                        <small class="text-muted">Prix unitaire</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0">Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('products.view_product', id=sale.product.id) }}" class="btn btn-outline-primary">
+                        <i class="bi bi-box me-2"></i>Voir le produit
+                    </a>
+                    {% if sale.product.quantity > 0 %}
+                        <a href="{{ url_for('sales.add_sale') }}" class="btn btn-outline-success">
+                            <i class="bi bi-cart-plus me-2"></i>Vendre à nouveau
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Informations sur le stock après vente -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="mb-0">Impact sur le stock</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Stock actuel du produit :</strong> 
+                    {% if sale.product.is_low_stock %}
+                        <span class="badge bg-warning text-dark">{{ sale.product.quantity }} unités</span>
+                        <i class="bi bi-exclamation-triangle text-warning ms-1" title="Stock faible"></i>
+                    {% else %}
+                        <span class="badge bg-success">{{ sale.product.quantity }} unités</span>
+                    {% endif %}
+                </p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Stock avant cette vente :</strong> 
+                    <span class="badge bg-info">{{ sale.product.quantity + sale.quantity_sold }} unités</span>
+                </p>
+            </div>
+        </div>
+        
+        {% if sale.product.is_low_stock %}
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <strong>Attention :</strong> Le stock de ce produit est maintenant faible. 
+                Pensez à le réapprovisionner.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

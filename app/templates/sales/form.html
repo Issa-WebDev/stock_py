@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - Gestion de Stock{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">
+                    <i class="bi bi-cart-plus me-2"></i>{{ title }}
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" id="saleForm">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ form.product_id.label(class="form-label") }}
+                        {{ form.product_id(class="form-select" + (" is-invalid" if form.product_id.errors else ""), onchange="updateProductInfo()") }}
+                        {% if form.product_id.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.product_id.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Sélectionnez le produit à vendre</div>
+                    </div>
+                    
+                    <!-- Informations du produit sélectionné -->
+                    <div id="productInfo" class="card bg-light mb-3" style="display: none;">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>Prix unitaire :</strong>
+                                    <span id="productPrice" class="text-success"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Stock disponible :</strong>
+                                    <span id="productStock" class="badge"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.quantity_sold.label(class="form-label") }}
+                                {{ form.quantity_sold(class="form-control" + (" is-invalid" if form.quantity_sold.errors else ""), oninput="calculateTotal()") }}
+                                {% if form.quantity_sold.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.quantity_sold.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Total de la vente</label>
+                                <div class="input-group">
+                                    <input type="text" id="totalPrice" class="form-control" readonly>
+                                    <span class="input-group-text">€</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('sales.list_sales') }}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Retour
+                        </a>
+                        {{ form.submit(class="btn btn-success") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Données des produits pour JavaScript
+const productsData = {
+    {% for choice in form.product_id.choices %}
+        {% if choice[0] %}
+            {{ choice[0] }}: {
+                name: "{{ choice[1].split(' (Stock: ')[0] }}",
+                stock: {{ choice[1].split('Stock: ')[1].split(')')[0] if 'Stock: ' in choice[1] else 0 }},
+                price: 0 // Le prix sera récupéré via AJAX ou ajouté ici
+            },
+        {% endif %}
+    {% endfor %}
+};
+
+function updateProductInfo() {
+    const productSelect = document.getElementById('product_id');
+    const productInfo = document.getElementById('productInfo');
+    const productPrice = document.getElementById('productPrice');
+    const productStock = document.getElementById('productStock');
+    
+    if (productSelect.value && productsData[productSelect.value]) {
+        const product = productsData[productSelect.value];
+        productInfo.style.display = 'block';
+        productStock.textContent = product.stock;
+        productStock.className = product.stock < 5 ? 'badge bg-warning text-dark' : 'badge bg-success';
+        
+        // Réinitialiser le total
+        calculateTotal();
+    } else {
+        productInfo.style.display = 'none';
+    }
+}
+
+function calculateTotal() {
+    const productSelect = document.getElementById('product_id');
+    const quantityInput = document.getElementById('quantity_sold');
+    const totalInput = document.getElementById('totalPrice');
+    
+    if (productSelect.value && quantityInput.value && productsData[productSelect.value]) {
+        // Pour une vraie application, le prix devrait être récupéré du serveur
+        // Ici, on utilise une estimation basée sur les données disponibles
+        const quantity = parseFloat(quantityInput.value) || 0;
+        // Le prix sera mis à jour via AJAX dans une vraie application
+        totalInput.value = "Calculé au moment de la validation";
+    } else {
+        totalInput.value = "";
+    }
+}
+
+// Initialiser l'affichage au chargement de la page
+document.addEventListener('DOMContentLoaded', function() {
+    updateProductInfo();
+});
+</script>
+{% endblock %}

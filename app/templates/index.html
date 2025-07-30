@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Accueil - Gestion de Stock{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="jumbotron bg-primary text-white rounded p-5 text-center">
+            <h1 class="display-4">
+                <i class="bi bi-box-seam me-3"></i>Stock Manager
+            </h1>
+            <p class="lead">Système de gestion de stock professionnel pour votre magasin</p>
+            <hr class="my-4 bg-white">
+            <p>Gérez vos produits, suivez vos ventes et optimisez votre stock en toute simplicité.</p>
+            <div class="mt-4">
+                <a class="btn btn-light btn-lg me-3" href="{{ url_for('auth.login') }}" role="button">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Se connecter
+                </a>
+                <a class="btn btn-outline-light btn-lg" href="{{ url_for('auth.register') }}" role="button">
+                    <i class="bi bi-person-plus me-2"></i>S'inscrire
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-box display-4 text-primary mb-3"></i>
+                <h5 class="card-title">Gestion des Produits</h5>
+                <p class="card-text">Ajoutez, modifiez et supprimez vos produits. Organisez-les par catégories et suivez leur stock en temps réel.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-graph-up display-4 text-success mb-3"></i>
+                <h5 class="card-title">Suivi des Ventes</h5>
+                <p class="card-text">Enregistrez vos ventes et consultez l'historique complet. Analysez vos performances commerciales.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-exclamation-triangle display-4 text-warning mb-3"></i>
+                <h5 class="card-title">Alertes de Stock</h5>
+                <p class="card-text">Recevez des alertes automatiques quand vos produits atteignent un stock critique.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

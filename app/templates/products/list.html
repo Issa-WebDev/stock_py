@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block title %}Liste des Produits - Gestion de Stock{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-box me-2"></i>Liste des Produits</h1>
+    <a href="{{ url_for('products.add_product') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-2"></i>Ajouter un produit
+    </a>
+</div>
+
+<!-- Options de tri -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <label class="form-label">Trier par :</label>
+                <div class="btn-group" role="group">
+                    <a href="{{ url_for('products.list_products', sort='name', order='asc') }}" 
+                       class="btn btn-outline-primary {{ 'active' if sort_by == 'name' and order == 'asc' }}">
+                        Nom <i class="bi bi-arrow-up"></i>
+                    </a>
+                    <a href="{{ url_for('products.list_products', sort='name', order='desc') }}" 
+                       class="btn btn-outline-primary {{ 'active' if sort_by == 'name' and order == 'desc' }}">
+                        Nom <i class="bi bi-arrow-down"></i>
+                    </a>
+                    <a href="{{ url_for('products.list_products', sort='category', order='asc') }}" 
+                       class="btn btn-outline-primary {{ 'active' if sort_by == 'category' and order == 'asc' }}">
+                        Catégorie <i class="bi bi-arrow-up"></i>
+                    </a>
+                    <a href="{{ url_for('products.list_products', sort='quantity', order='asc') }}" 
+                       class="btn btn-outline-primary {{ 'active' if sort_by == 'quantity' and order == 'asc' }}">
+                        Stock <i class="bi bi-arrow-up"></i>
+                    </a>
+                    <a href="{{ url_for('products.list_products', sort='price', order='desc') }}" 
+                       class="btn btn-outline-primary {{ 'active' if sort_by == 'price' and order == 'desc' }}">
+                        Prix <i class="bi bi-arrow-down"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-6 text-end">
+                <span class="text-muted">{{ products.total }} produit(s) trouvé(s)</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Liste des produits -->
+<div class="card">
+    <div class="card-body">
+        {% if products.items %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Produit</th>
+                            <th>Référence</th>
+                            <th>Catégorie</th>
+                            <th>Prix</th>
+                            <th>Stock</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products.items %}
+                        <tr>
+                            <td>
+                                <strong>{{ product.name }}</strong>
+                                {% if product.description %}
+                                    <br><small class="text-muted">{{ product.description[:50] }}{% if product.description|length > 50 %}...{% endif %}</small>
+                                {% endif %}
+                            </td>
+                            <td><code>{{ product.reference }}</code></td>
+                            <td>
+                                <span class="badge bg-secondary">{{ product.category }}</span>
+                            </td>
+                            <td>{{ "%.2f"|format(product.price) }}€</td>
+                            <td>
+                                {% if product.is_low_stock %}
+                                    <span class="badge bg-danger">{{ product.quantity }}</span>
+                                    <i class="bi bi-exclamation-triangle text-warning ms-1" title="Stock faible"></i>
+                                {% else %}
+                                    <span class="badge bg-success">{{ product.quantity }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{{ url_for('products.view_product', id=product.id) }}" 
+                                       class="btn btn-outline-info" title="Voir">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('products.edit_product', id=product.id) }}" 
+                                       class="btn btn-outline-primary" title="Modifier">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-outline-danger" 
+                                            onclick="confirmDelete('{{ product.name }}', '{{ url_for('products.delete_product', id=product.id) }}')"
+                                            title="Supprimer">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if products.pages > 1 %}
+                <nav aria-label="Navigation des pages">
+                    <ul class="pagination justify-content-center">
+                        {% if products.has_prev %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('products.list_products', page=products.prev_num, sort=sort_by, order=order) }}">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for page_num in products.iter_pages() %}
+                            {% if page_num %}
+                                {% if page_num != products.page %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('products.list_products', page=page_num, sort=sort_by, order=order) }}">{{ page_num }}</a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ page_num }}</span>
+                                    </li>
+                                {% endif %}
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if products.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('products.list_products', page=products.next_num, sort=sort_by, order=order) }}">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-box display-4 text-muted"></i>
+                <h4 class="mt-3">Aucun produit trouvé</h4>
+                <p class="text-muted">Commencez par ajouter votre premier produit.</p>
+                <a href="{{ url_for('products.add_product') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-2"></i>Ajouter un produit
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete(productName, deleteUrl) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer le produit "' + productName + '" ?')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = deleteUrl;
+        
+        const csrfToken = document.querySelector('meta[name=csrf-token]');
+        if (csrfToken) {
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrf_token';
+            csrfInput.value = csrfToken.getAttribute('content');
+            form.appendChild(csrfInput);
+        }
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>
+{% endblock %}
